@@ -1,0 +1,123 @@
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <cstring>
+#include <algorithm>
+
+using namespace std;
+typedef int var;
+
+
+var n;
+const var MOD = 1e9 + 7;
+const var MAXN = 5002;
+
+var Ans[MAXN];
+char str[MAXN];
+
+var C[MAXN][MAXN];
+bool Comp[MAXN][MAXN];
+var Ap[MAXN];
+
+
+var V[MAXN][MAXN];
+void BSort(var order, var sz) {
+
+    sort(V[order]+1, V[order]+sz+1, [&order](var a, var b) {
+            return str[order+a] < str[order+b];
+         });
+
+    var nwsz = 0;
+    var ap = 0;
+    for(var i=1; i<=sz; i++) {
+
+        if(order + V[order][i] > n)
+            continue;
+
+
+        V[order+1][++nwsz] = V[order][i];
+        ap++;
+        if(i<sz && str[order+V[order][i]] == str[order+V[order][i+1]])
+            continue;
+
+
+        Ap[ap] ++;
+        BSort(order+1, nwsz);
+        nwsz = 0;
+        ap = 0;
+    }
+}
+
+var Comb(var a, var b) {
+    b = min(b, a-b);
+
+    if(b == 0)
+        return 1;
+
+    if(Comp[a][b])
+        return C[a][b];
+
+    Comp[a][b] = 1;
+    C[a][b] = Comb(a-1, b-1) + Comb(a-1, b);
+    if(C[a][b] >= MOD) C[a][b] -= MOD;
+
+    return C[a][b];
+}
+
+var Inv[MAXN];
+var Next[MAXN];
+
+int main() {
+    #ifdef DEBUG
+    freopen("debug.in", "r", stdin);
+    freopen("debug.out", "w", stdout);
+    #endif // debug
+
+    str[0] = '#';
+    var t, q;
+
+    cin>>t;
+    for(var tt=1; tt<=t; tt++) {
+        cin>>n>>q;
+        cin>>str+1;
+
+        str[n+1] = 254;
+
+        memset(Ap, 0, sizeof(Ap));
+
+        for(var i=1; i<=n; i++) {
+            V[0][i] = i;
+        }
+
+        BSort(0, n);
+
+        Next[n] = n+1;
+        for(var i=n-1; i>=0; i--) {
+            if(Ap[i+1] == 0) {
+                Next[i] = Next[i+1];
+            } else {
+                Next[i] = i+1;
+            }
+        }
+
+        for(var s=1; s<=n; s++) {
+            Ans[s] = 0;
+            for(var k=Next[s-1]; k<=n; k=Next[k]) {
+                Ans[s] = (Ans[s] + 1LL * Comb(k, s) * Ap[k]) % MOD;
+            }
+        }
+
+
+
+        var x;
+
+        while(q--) {
+            cin>>x;
+            if(x > n) cout<<"0\n";
+            else cout<<Ans[x]<<'\n';
+        }
+
+    }
+
+    return 0;
+}
